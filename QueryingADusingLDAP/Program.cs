@@ -21,7 +21,7 @@ namespace QueryingADusingLDAP
             search.PropertiesToLoad.Add("samaccountname");
             search.PropertiesToLoad.Add("mail");
             search.PropertiesToLoad.Add("usergroup");
-            search.PropertiesToLoad.Add("displayname");//first name
+            search.PropertiesToLoad.Add("displayname");    //first name
 
             SearchResultCollection resultCol = search.FindAll();
         }
