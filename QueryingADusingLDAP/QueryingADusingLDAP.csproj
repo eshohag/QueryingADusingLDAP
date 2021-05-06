@@ -50,6 +50,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="LDAP\azure-ad-ds-client.cer" />
+    <None Include="LDAP\Certificate.pfx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="LDAP\PowershellCommand.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
