@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.DirectoryServices;
+using System.IO;
 
 namespace QueryingADusingLDAP
 {
@@ -17,7 +18,7 @@ namespace QueryingADusingLDAP
             //DirectoryEntry searchRoot = new DirectoryEntry(domainPath, null, null, AuthenticationTypes.None);
 
             DirectorySearcher search = new DirectorySearcher(searchRoot);
-            search.Filter = "(&(objectClass=user)(objectCategory=person))";
+            search.Filter = "(&(objectClass=user)(objectCategory=person)(|(memberOf=CN=CupAdmin)(memberOf=CN=CupManagers)(memberOf=CN=CupUsers)))";
 
             search.PropertiesToLoad.Add("samaccountname");
             search.PropertiesToLoad.Add("objectSid");   //Login User Id
@@ -62,7 +63,6 @@ namespace QueryingADusingLDAP
                     {
                         user.FullName = user.FullName + "" + result.Properties["sn"][0].ToString();
                     }
-
                     if (result.Properties.Contains("displayName"))
                     {
                         user.DisplayName = result.Properties["displayName"][0].ToString();
@@ -79,7 +79,6 @@ namespace QueryingADusingLDAP
                     {
                         user.MemberOf = result.Properties["memberof"][0].ToString();
                     }
-
                     if (result.Properties.Contains("usergroup"))
                     {
                         user.Group = result.Properties["usergroup"][0].ToString();
@@ -87,11 +86,13 @@ namespace QueryingADusingLDAP
                     users.Add(user);
                 }
             }
-
+            string text = null;
             foreach (var item in users)
             {
+                text = text + "\n" + "UserId-" + item.UserId + ", UserName-" + item.UserName + ", Email-" + item.Email + ", ContactNo-" + item.ContactNo + ", DisplayName-" + item.DisplayName + ", FullName-" + item.FullName + ", AccountName-" + item.AccountName + ", Group-" + item.Group;
                 Console.WriteLine("UserId-" + item.UserId + ", UserName-" + item.UserName + ", Email-" + item.Email + ", ContactNo-" + item.ContactNo + ", DisplayName-" + item.DisplayName + ", FullName-" + item.FullName + ", AccountName-" + item.AccountName + ", Group-" + item.Group);
             }
+            File.WriteAllText(@"UserInformation.txt", text);
 
             Console.ReadKey();
         }
