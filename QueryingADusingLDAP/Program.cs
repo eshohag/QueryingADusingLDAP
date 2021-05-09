@@ -15,20 +15,23 @@ namespace QueryingADusingLDAP
             //string domainPath = "LDAP://51.105.11.208:636";
 
             DirectoryEntry searchRoot = new DirectoryEntry(domainPath, "appdeploy@kpsk.care", "Nuhu2968Nuhu2968", System.DirectoryServices.AuthenticationTypes.Secure);
-            //DirectoryEntry searchRoot = new DirectoryEntry(domainPath, null, null, AuthenticationTypes.None);
 
             DirectorySearcher search = new DirectorySearcher(searchRoot);
-            search.Filter = "(&(objectClass=user)(objectCategory=person)(|(memberOf=CN=CupAdmin)(memberOf=CN=CupManagers)(memberOf=CN=CupUsers)))";
+            //search.Filter = "(&(objectClass=user)(objectCategory=person))";
+            search.Filter = "(&(&(objectClass=user)(objectCategory=person))(|(memberOf=CN=CupAdmin,OU=AADDC Users,DC=kpsk,DC=care)(memberOf=CN=CupManagers,OU=AADDC Users,DC=kpsk,DC=care)(memberOf=CN=CupUsers,OU=AADDC Users,DC=kpsk,DC=care)))";
+            search.Sort = new SortOption("name", SortDirection.Ascending);
 
+            search.PropertiesToLoad.Add("objectguid");
             search.PropertiesToLoad.Add("samaccountname");
-            search.PropertiesToLoad.Add("objectSid");   //Login User Id
-            search.PropertiesToLoad.Add("cn");          // Login Name
-            search.PropertiesToLoad.Add("givenName");   // First Name
-            search.PropertiesToLoad.Add("sn");          // Last Name
-            search.PropertiesToLoad.Add("displayName"); // Display Name
+            search.PropertiesToLoad.Add("name");
+            search.PropertiesToLoad.Add("userPrincipalName");   //User login name
+            search.PropertiesToLoad.Add("cn");                  // Login Name
+            search.PropertiesToLoad.Add("givenName");           // First Name
+            search.PropertiesToLoad.Add("sn");                  // Last Name
+            search.PropertiesToLoad.Add("displayName");         // Display Name
             search.PropertiesToLoad.Add("mail");
             search.PropertiesToLoad.Add("TelephoneNumber");
-            search.PropertiesToLoad.Add("memberof");    //Get User Groups
+            search.PropertiesToLoad.Add("memberof");            //Get User Groups
             search.PropertiesToLoad.Add("usergroup");
 
             SearchResultCollection resultCol = search.FindAll();
@@ -43,13 +46,21 @@ namespace QueryingADusingLDAP
                     result = resultCol[counter];
                     var user = new ADUserByGroup();
 
+                    if (result.Properties.Contains("objectGUID"))
+                    {
+                        user.UserId = new Guid(result.Properties["objectGUID"][0] as byte[]).ToString();
+                    }
                     if (result.Properties.Contains("samaccountname"))
                     {
                         user.AccountName = result.Properties["samaccountname"][0].ToString();
                     }
-                    if (result.Properties.Contains("objectSid"))
+                    if (result.Properties.Contains("name"))
                     {
-                        user.UserId = result.Properties["objectSid"][0].ToString();
+                        user.Name = result.Properties["name"][0].ToString();
+                    }
+                    if (result.Properties.Contains("userPrincipalName"))
+                    {
+                        user.UserPrincipalName = result.Properties["userPrincipalName"][0].ToString();
                     }
                     if (result.Properties.Contains("cn"))
                     {
@@ -86,27 +97,16 @@ namespace QueryingADusingLDAP
                     users.Add(user);
                 }
             }
+
             string text = null;
             foreach (var item in users)
             {
                 text = text + "\n" + "UserId-" + item.UserId + ", UserName-" + item.UserName + ", Email-" + item.Email + ", ContactNo-" + item.ContactNo + ", DisplayName-" + item.DisplayName + ", FullName-" + item.FullName + ", AccountName-" + item.AccountName + ", Group-" + item.Group;
                 Console.WriteLine("UserId-" + item.UserId + ", UserName-" + item.UserName + ", Email-" + item.Email + ", ContactNo-" + item.ContactNo + ", DisplayName-" + item.DisplayName + ", FullName-" + item.FullName + ", AccountName-" + item.AccountName + ", Group-" + item.Group);
             }
-            File.WriteAllText(@"UserInformation.txt", text);
+            File.WriteAllText(@"C:\\UserInformation.txt", text);
 
             Console.ReadKey();
         }
-    }
-    class ADUserByGroup
-    {
-        public string UserId { get; set; }
-        public string UserName { get; set; }
-        public string Email { get; set; }
-        public string ContactNo { get; set; }
-        public string DisplayName { get; set; }
-        public string FullName { get; set; }
-        public string AccountName { get; set; }
-        public string MemberOf { get; set; }
-        public string Group { get; set; }
     }
 }
